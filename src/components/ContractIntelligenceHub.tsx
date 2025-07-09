@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Calendar, Users, Star, TrendingUp, AlertCircle, Check, Download, Filter, MapPin, Activity, Info, FileText } from 'lucide-react';
+import { Search, Calendar, Users, Star, TrendingUp, AlertCircle, Check, Download, Filter, MapPin, Activity, Info, FileText, ShoppingCart, X, Plus, Minus } from 'lucide-react';
 
 const ContractIntelligenceHub = () => {
   const [activeTab, setActiveTab] = useState('hotel-search');
@@ -9,6 +9,8 @@ const ContractIntelligenceHub = () => {
   const [showContractModal, setShowContractModal] = useState(false);
   const [selectedHotel, setSelectedHotel] = useState(null);
   const [showTooltip, setShowTooltip] = useState(null);
+  const [quoteItems, setQuoteItems] = useState([]);
+  const [showQuotePanel, setShowQuotePanel] = useState(false);
 
   // Get current season rate
   const getCurrentSeasonRate = (hotelName, rateType = 'double') => {
@@ -365,6 +367,52 @@ const ContractIntelligenceHub = () => {
   const handleViewContract = (hotel) => {
     setSelectedHotel(hotel);
     setShowContractModal(true);
+  };
+
+  // Quote management functions
+  const addToQuote = (hotel) => {
+    const existingItem = quoteItems.find(item => item.name === hotel.name);
+    if (existingItem) {
+      // Increase quantity if already in quote
+      setQuoteItems(quoteItems.map(item =>
+        item.name === hotel.name
+          ? { ...item, quantity: item.quantity + 1 }
+          : item
+      ));
+    } else {
+      // Add new item to quote
+      setQuoteItems([...quoteItems, {
+        ...hotel,
+        quantity: 1,
+        nights: 1,
+        guests: 2
+      }]);
+    }
+    setShowQuotePanel(true);
+  };
+
+  const updateQuoteItem = (hotelName, field, value) => {
+    setQuoteItems(quoteItems.map(item =>
+      item.name === hotelName
+        ? { ...item, [field]: parseInt(value) || 1 }
+        : item
+    ));
+  };
+
+  const removeFromQuote = (hotelName) => {
+    setQuoteItems(quoteItems.filter(item => item.name !== hotelName));
+  };
+
+  const calculateQuoteTotal = () => {
+    return quoteItems.reduce((total, item) => {
+      const rateMatch = item.rate.match(/\$(\d+)/);
+      const rate = rateMatch ? parseInt(rateMatch[1]) : 0;
+      return total + (rate * item.quantity * item.nights * item.guests);
+    }, 0);
+  };
+
+  const calculateCommission = (total, percentage = 15) => {
+    return Math.round(total * percentage / 100);
   };
 
   const Tooltip = ({ children, content, id }) => (
@@ -734,7 +782,10 @@ const ContractIntelligenceHub = () => {
           </Tooltip>
         </div>
         <div className="flex gap-2">
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+          <button 
+            onClick={() => addToQuote(hotel)}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          >
             Add to Quote
           </button>
           <button 
@@ -747,6 +798,175 @@ const ContractIntelligenceHub = () => {
       </div>
     </div>
   );
+
+  // Quote Panel Component
+  const QuotePanel = () => {
+    const total = calculateQuoteTotal();
+    const commission = calculateCommission(total);
+    const netTotal = total - commission;
+
+    return (
+      <div className={`fixed right-0 top-0 h-full bg-white shadow-xl transform transition-transform z-40 ${
+        showQuotePanel ? 'translate-x-0' : 'translate-x-full'
+      } w-96`}>
+        <div className="flex items-center justify-between p-4 border-b">
+          <div className="flex items-center gap-2">
+            <ShoppingCart className="w-5 h-5" />
+            <h2 className="text-lg font-semibold">Quote Builder</h2>
+            <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+              {quoteItems.length} items
+            </span>
+          </div>
+          <button
+            onClick={() => setShowQuotePanel(false)}
+            className="text-gray-400 hover:text-gray-600"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-4" style={{ height: 'calc(100% - 240px)' }}>
+          {quoteItems.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <ShoppingCart className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+              <p>No items in quote yet</p>
+              <p className="text-sm mt-1">Add hotels to start building your quote</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {quoteItems.map((item, idx) => (
+                <div key={idx} className="border rounded-lg p-4 bg-gray-50">
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <h4 className="font-medium text-gray-900">{item.name}</h4>
+                      <p className="text-sm text-gray-600">{item.location}</p>
+                    </div>
+                    <button
+                      onClick={() => removeFromQuote(item.name)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                  
+                  <div className="grid grid-cols-3 gap-2 text-sm">
+                    <div>
+                      <label className="text-gray-600">Nights</label>
+                      <div className="flex items-center gap-1 mt-1">
+                        <button
+                          onClick={() => updateQuoteItem(item.name, 'nights', Math.max(1, item.nights - 1))}
+                          className="w-6 h-6 rounded border hover:bg-gray-100"
+                        >
+                          <Minus className="w-3 h-3 mx-auto" />
+                        </button>
+                        <input
+                          type="number"
+                          value={item.nights}
+                          onChange={(e) => updateQuoteItem(item.name, 'nights', e.target.value)}
+                          className="w-12 text-center border rounded"
+                          min="1"
+                        />
+                        <button
+                          onClick={() => updateQuoteItem(item.name, 'nights', item.nights + 1)}
+                          className="w-6 h-6 rounded border hover:bg-gray-100"
+                        >
+                          <Plus className="w-3 h-3 mx-auto" />
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label className="text-gray-600">Rooms</label>
+                      <div className="flex items-center gap-1 mt-1">
+                        <button
+                          onClick={() => updateQuoteItem(item.name, 'quantity', Math.max(1, item.quantity - 1))}
+                          className="w-6 h-6 rounded border hover:bg-gray-100"
+                        >
+                          <Minus className="w-3 h-3 mx-auto" />
+                        </button>
+                        <input
+                          type="number"
+                          value={item.quantity}
+                          onChange={(e) => updateQuoteItem(item.name, 'quantity', e.target.value)}
+                          className="w-12 text-center border rounded"
+                          min="1"
+                        />
+                        <button
+                          onClick={() => updateQuoteItem(item.name, 'quantity', item.quantity + 1)}
+                          className="w-6 h-6 rounded border hover:bg-gray-100"
+                        >
+                          <Plus className="w-3 h-3 mx-auto" />
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label className="text-gray-600">Guests</label>
+                      <div className="flex items-center gap-1 mt-1">
+                        <button
+                          onClick={() => updateQuoteItem(item.name, 'guests', Math.max(1, item.guests - 1))}
+                          className="w-6 h-6 rounded border hover:bg-gray-100"
+                        >
+                          <Minus className="w-3 h-3 mx-auto" />
+                        </button>
+                        <input
+                          type="number"
+                          value={item.guests}
+                          onChange={(e) => updateQuoteItem(item.name, 'guests', e.target.value)}
+                          className="w-12 text-center border rounded"
+                          min="1"
+                        />
+                        <button
+                          onClick={() => updateQuoteItem(item.name, 'guests', item.guests + 1)}
+                          className="w-6 h-6 rounded border hover:bg-gray-100"
+                        >
+                          <Plus className="w-3 h-3 mx-auto" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-3 pt-3 border-t flex justify-between">
+                    <span className="text-sm text-gray-600">Subtotal:</span>
+                    <span className="font-medium">
+                      ${parseInt(item.rate.match(/\$(\d+)/)?.[1] || 0) * item.nights * item.quantity * item.guests}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="border-t p-4 bg-gray-50">
+          <div className="space-y-2 mb-4">
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">Subtotal:</span>
+              <span className="font-medium">${total.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">Commission (15%):</span>
+              <span className="font-medium text-green-600">-${commission.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between text-lg font-semibold pt-2 border-t">
+              <span>Net Total:</span>
+              <span>${netTotal.toLocaleString()}</span>
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <button className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center gap-2">
+              <Download className="w-4 h-4" />
+              Export Quote
+            </button>
+            <button className="w-full px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
+              Save as Draft
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -961,6 +1181,22 @@ const ContractIntelligenceHub = () => {
           hotel={selectedHotel} 
           onClose={() => setShowContractModal(false)} 
         />
+      )}
+
+      {/* Quote Panel */}
+      <QuotePanel />
+
+      {/* Floating Quote Button */}
+      {quoteItems.length > 0 && !showQuotePanel && (
+        <button
+          onClick={() => setShowQuotePanel(true)}
+          className="fixed bottom-8 right-8 bg-blue-600 text-white rounded-full p-4 shadow-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+        >
+          <ShoppingCart className="w-6 h-6" />
+          <span className="bg-white text-blue-600 text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold">
+            {quoteItems.length}
+          </span>
+        </button>
       )}
     </div>
   );
