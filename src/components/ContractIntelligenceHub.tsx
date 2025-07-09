@@ -1,31 +1,73 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Calendar, Users, Star, TrendingUp, AlertCircle, Check, Download, Filter, MapPin, Activity, Info, FileText, ShoppingCart, X, Plus, Minus } from 'lucide-react';
+import { Search, Star, TrendingUp, AlertCircle, Download, Filter, MapPin, Activity, Info, FileText, ShoppingCart, X, Plus, Minus } from 'lucide-react';
+
+interface QuoteItem {
+  name: string;
+  location: string;
+  rate: string | number;
+  nights: number;
+  quantity: number;
+  guests: number;
+}
+
+interface Hotel {
+  name: string;
+  location: string;
+  stars?: number;
+  rate: string | number;
+  isPreferred?: boolean;
+  rating?: number;
+  experience?: string[];
+  note?: string;
+  savings?: number;
+  originalRate?: string;
+  appliedRate?: string;
+  rateType?: string;
+  specialTerms?: string;
+  bookingHistory?: number;
+  lastUsed?: string;
+  confidence?: number;
+  availability?: string;
+}
 
 const ContractIntelligenceHub = () => {
-  const [activeTab, setActiveTab] = useState('hotel-search');
   const [searchType, setSearchType] = useState('specific');
   const [showResults, setShowResults] = useState(false);
   const [preferredOnly, setPreferredOnly] = useState(false);
   const [showContractModal, setShowContractModal] = useState(false);
-  const [selectedHotel, setSelectedHotel] = useState(null);
-  const [showTooltip, setShowTooltip] = useState(null);
-  const [quoteItems, setQuoteItems] = useState([]);
+  const [selectedHotel, setSelectedHotel] = useState<string | null>(null);
+  const [showTooltip, setShowTooltip] = useState<string | null>(null);
+  const [quoteItems, setQuoteItems] = useState<QuoteItem[]>([]);
   const [showQuotePanel, setShowQuotePanel] = useState(false);
+  
+  // Search form state
+  const [checkInDate, setCheckInDate] = useState('2025-07-11');
+  const [checkOutDate, setCheckOutDate] = useState('2025-07-19');
+  const [guestCount, setGuestCount] = useState(2);
+
+  // Calculate nights from date range
+  const calculateNights = (checkIn: string, checkOut: string) => {
+    const checkInDate = new Date(checkIn);
+    const checkOutDate = new Date(checkOut);
+    const timeDiff = checkOutDate.getTime() - checkInDate.getTime();
+    const nights = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+    return nights > 0 ? nights : 1;
+  };
 
   // Get current season rate
-  const getCurrentSeasonRate = (hotelName, rateType = 'double') => {
-    const contract = mockContract[hotelName];
+  const getCurrentSeasonRate = (hotelName: string, rateType: 'single' | 'double' | 'child' = 'double') => {
+    const contract = mockContract[hotelName as keyof typeof mockContract];
     if (!contract) return 0;
     
     const currentMonth = new Date().getMonth();
-    const seasonMap = {
+    const seasonMap: Record<number, string> = {
       0: "Jan-Mar", 1: "Jan-Mar", 2: "Jan-Mar",
       3: "Apr-Jun", 4: "Apr-Jun", 5: "Apr-Jun",
       6: "Jul-Sep", 7: "Jul-Sep", 8: "Jul-Sep",
       9: "Oct-Dec", 10: "Oct-Dec", 11: "Oct-Dec"
     };
     const currentSeason = seasonMap[currentMonth];
-    return contract.rateCard[currentSeason][rateType];
+    return contract.rateCard[currentSeason as keyof typeof contract.rateCard][rateType];
   };
 
   const mockContract = {
@@ -364,13 +406,13 @@ const ContractIntelligenceHub = () => {
     setShowResults(true);
   };
 
-  const handleViewContract = (hotel) => {
-    setSelectedHotel(hotel);
+  const handleViewContract = (hotel: Hotel) => {
+    setSelectedHotel(hotel.name);
     setShowContractModal(true);
   };
 
   // Quote management functions
-  const addToQuote = (hotel) => {
+  const addToQuote = (hotel: Hotel) => {
     const existingItem = quoteItems.find(item => item.name === hotel.name);
     if (existingItem) {
       // Increase quantity if already in quote
@@ -380,42 +422,47 @@ const ContractIntelligenceHub = () => {
           : item
       ));
     } else {
-      // Add new item to quote
-      setQuoteItems([...quoteItems, {
-        ...hotel,
-        quantity: 1,
-        nights: 1,
-        guests: 2
-      }]);
+      // Add new item to quote using search form data
+      const calculatedNights = calculateNights(checkInDate, checkOutDate);
+      const newItem: QuoteItem = {
+        name: hotel.name,
+        location: hotel.location,
+        rate: hotel.rate,
+        quantity: 1, // Number of rooms
+        nights: calculatedNights, // Use calculated nights from search form
+        guests: guestCount // Use guest count from search form
+      };
+      setQuoteItems([...quoteItems, newItem]);
     }
     setShowQuotePanel(true);
   };
 
-  const updateQuoteItem = (hotelName, field, value) => {
+  const updateQuoteItem = (hotelName: string, field: keyof QuoteItem, value: string | number) => {
     setQuoteItems(quoteItems.map(item =>
       item.name === hotelName
-        ? { ...item, [field]: parseInt(value) || 1 }
+        ? { ...item, [field]: typeof value === 'string' ? parseInt(value) || 1 : value }
         : item
     ));
   };
 
-  const removeFromQuote = (hotelName) => {
+  const removeFromQuote = (hotelName: string) => {
     setQuoteItems(quoteItems.filter(item => item.name !== hotelName));
   };
 
   const calculateQuoteTotal = () => {
     return quoteItems.reduce((total, item) => {
-      const rateMatch = item.rate.match(/\$(\d+)/);
-      const rate = rateMatch ? parseInt(rateMatch[1]) : 0;
+      const rate = typeof item.rate === 'string' ? 
+        (item.rate.match(/\$(\d+)/) ? parseInt(item.rate.match(/\$(\d+)/)![1]) : 0) : 
+        item.rate;
       return total + (rate * item.quantity * item.nights * item.guests);
     }, 0);
   };
 
-  const calculateCommission = (total, percentage = 15) => {
+  const calculateCommission = (total: number, percentage: number = 15) => {
     return Math.round(total * percentage / 100);
   };
 
-  const Tooltip = ({ children, content, id }) => (
+  const Tooltip = ({ children, content, id }: { children: React.ReactNode; content: string; id: string }) => (
     <div className="relative inline-block">
       <div
         onMouseEnter={() => setShowTooltip(id)}
@@ -434,8 +481,8 @@ const ContractIntelligenceHub = () => {
     </div>
   );
 
-  const ContractModal = ({ hotel, onClose }) => {
-    const contract = mockContract[hotel.name];
+  const ContractModal = ({ hotel, onClose }: { hotel: string; onClose: () => void }) => {
+    const contract = mockContract[hotel as keyof typeof mockContract];
     if (!contract) return null;
 
     const currentMonth = new Date().getMonth();
@@ -519,7 +566,8 @@ const ContractIntelligenceHub = () => {
                 <div className="space-y-3">
                   {Object.entries(contract.rateCard).map(([season, rates]) => {
                     const isCurrentSeason = season === currentSeason;
-                    const isQuotedRate = isCurrentSeason && rates.double === getCurrentSeasonRate(hotel.name);
+                    const ratesTyped = rates as { single: number; double: number; child: number };
+                    const isQuotedRate = isCurrentSeason && ratesTyped.double === getCurrentSeasonRate(hotel);
                     
                     return (
                       <div 
@@ -547,13 +595,13 @@ const ContractIntelligenceHub = () => {
                         </div>
                         <div className="grid grid-cols-3 gap-2 mt-2 text-sm">
                           <div className={isCurrentSeason ? 'font-medium text-green-800' : ''}>
-                            Single: ${rates.single}
+                            Single: ${ratesTyped.single}
                           </div>
                           <div className={isCurrentSeason && isQuotedRate ? 'font-bold text-blue-800' : isCurrentSeason ? 'font-medium text-green-800' : ''}>
-                            Double: ${rates.double} {isQuotedRate && '← Base rate'}
+                            Double: ${ratesTyped.double} {isQuotedRate && '← Base rate'}
                           </div>
                           <div className={isCurrentSeason ? 'font-medium text-green-800' : ''}>
-                            Child: ${rates.child}
+                            Child: ${ratesTyped.child}
                           </div>
                         </div>
                       </div>
@@ -569,7 +617,7 @@ const ContractIntelligenceHub = () => {
               <div className="bg-blue-50 p-4 rounded-lg">
                 <h3 className="text-lg font-semibold mb-4 text-gray-900">Special Offers</h3>
                 <div className="space-y-3">
-                  {contract.specialOffers.map((offer, idx) => (
+                  {contract.specialOffers.map((offer: any, idx: number) => (
                     <div key={idx} className="bg-white p-3 rounded border-l-4 border-l-blue-500">
                       <div className="font-medium text-blue-900">{offer.title}</div>
                       <div className="text-sm text-gray-700 mt-1">{offer.description}</div>
@@ -584,7 +632,7 @@ const ContractIntelligenceHub = () => {
               <div className="lg:col-span-2">
                 <h3 className="text-lg font-semibold mb-4 text-gray-900">Contract Terms & Conditions</h3>
                 <div className="space-y-2">
-                  {contract.terms.map((term) => (
+                  {contract.terms.map((term: any) => (
                     <div 
                       key={term.id} 
                       className={`p-3 rounded border-l-4 ${
@@ -702,13 +750,13 @@ const ContractIntelligenceHub = () => {
     );
   };
 
-  const ExperienceTag = ({ type, color = "blue" }) => (
+  const ExperienceTag = ({ type, color = "blue" }: { type: string; color?: string }) => (
     <span className={`px-2 py-1 rounded-full text-xs font-medium bg-${color}-100 text-${color}-800`}>
       {type}
     </span>
   );
 
-  const HotelCard = ({ hotel, isPreferred }) => (
+  const HotelCard = ({ hotel, isPreferred }: { hotel: Hotel; isPreferred: boolean }) => (
     <div className={`bg-white rounded-lg shadow-md p-6 border-l-4 ${isPreferred ? 'border-l-green-500' : 'border-l-blue-500'}`}>
       <div className="flex justify-between items-start mb-4">
         <div className="flex-1">
@@ -731,7 +779,7 @@ const ContractIntelligenceHub = () => {
             </span>
           </div>
           <div className="flex flex-wrap gap-1 mb-3">
-            {hotel.experience.map((exp, idx) => (
+            {hotel.experience?.map((exp: string, idx: number) => (
               <ExperienceTag key={idx} type={exp} />
             ))}
           </div>
@@ -825,7 +873,18 @@ const ContractIntelligenceHub = () => {
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4" style={{ height: 'calc(100% - 240px)' }}>
+        {/* Trip Summary */}
+        <div className="px-4 py-3 bg-gray-50 border-b">
+          <div className="text-sm text-gray-600 mb-1">Trip Dates</div>
+          <div className="text-sm font-medium text-gray-900">
+            {new Date(checkInDate).toLocaleDateString()} - {new Date(checkOutDate).toLocaleDateString()}
+          </div>
+          <div className="text-xs text-gray-500 mt-1">
+            {calculateNights(checkInDate, checkOutDate)} nights • {guestCount} guests
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-4" style={{ height: 'calc(100% - 280px)' }}>
           {quoteItems.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               <ShoppingCart className="w-12 h-12 mx-auto mb-2 text-gray-300" />
@@ -834,7 +893,7 @@ const ContractIntelligenceHub = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              {quoteItems.map((item, idx) => (
+              {quoteItems.map((item: QuoteItem, idx: number) => (
                 <div key={idx} className="border rounded-lg p-4 bg-gray-50">
                   <div className="flex justify-between items-start mb-3">
                     <div>
@@ -929,7 +988,7 @@ const ContractIntelligenceHub = () => {
                   <div className="mt-3 pt-3 border-t flex justify-between">
                     <span className="text-sm text-gray-600">Subtotal:</span>
                     <span className="font-medium">
-                      ${parseInt(item.rate.match(/\$(\d+)/)?.[1] || 0) * item.nights * item.quantity * item.guests}
+                      ${(typeof item.rate === 'string' ? parseInt(item.rate.match(/\$(\d+)/)?.[1] || '0') : item.rate) * item.nights * item.quantity * item.guests}
                     </span>
                   </div>
                 </div>
@@ -1045,6 +1104,8 @@ const ContractIntelligenceHub = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Check-in</label>
                 <input
                   type="date"
+                  value={checkInDate}
+                  onChange={(e) => setCheckInDate(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -1052,14 +1113,19 @@ const ContractIntelligenceHub = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Check-out</label>
                 <input
                   type="date"
+                  value={checkOutDate}
+                  onChange={(e) => setCheckOutDate(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Guests</label>
                 <input
-                  type="text"
-                  placeholder="2 adults, 1 child"
+                  type="number"
+                  value={guestCount}
+                  onChange={(e) => setGuestCount(parseInt(e.target.value) || 1)}
+                  placeholder="2"
+                  min="1"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -1081,6 +1147,8 @@ const ContractIntelligenceHub = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Check-in</label>
                 <input
                   type="date"
+                  value={checkInDate}
+                  onChange={(e) => setCheckInDate(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -1088,14 +1156,19 @@ const ContractIntelligenceHub = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Check-out</label>
                 <input
                   type="date"
+                  value={checkOutDate}
+                  onChange={(e) => setCheckOutDate(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Guests</label>
                 <input
-                  type="text"
-                  placeholder="2 adults, 1 child"
+                  type="number"
+                  value={guestCount}
+                  onChange={(e) => setGuestCount(parseInt(e.target.value) || 1)}
+                  placeholder="2"
+                  min="1"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -1128,7 +1201,7 @@ const ContractIntelligenceHub = () => {
                 </div>
 
                 <div className="grid gap-4">
-                  {mockResults.preferred.map((hotel, idx) => (
+                  {mockResults.preferred.map((hotel: Hotel, idx: number) => (
                     <HotelCard key={idx} hotel={hotel} isPreferred={true} />
                   ))}
                 </div>
@@ -1144,7 +1217,7 @@ const ContractIntelligenceHub = () => {
                 </div>
 
                 <div className="grid gap-4">
-                  {mockResults.alternatives.map((hotel, idx) => (
+                  {mockResults.alternatives.map((hotel: Hotel, idx: number) => (
                     <HotelCard key={idx} hotel={hotel} isPreferred={false} />
                   ))}
                 </div>
@@ -1165,7 +1238,7 @@ const ContractIntelligenceHub = () => {
                 </div>
 
                 <div className="grid gap-4">
-                  {mockResults.preferred.map((hotel, idx) => (
+                  {mockResults.preferred.map((hotel: Hotel, idx: number) => (
                     <HotelCard key={idx} hotel={hotel} isPreferred={true} />
                   ))}
                 </div>

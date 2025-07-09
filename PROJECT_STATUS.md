@@ -21,17 +21,30 @@
 - Added floating quote button badge
 - Export and Save buttons (UI only)
 
+### 3. Itinerary Timeline View (Second Feature - COMPLETED)
+- Built complete timeline interface with drag-and-drop reordering
+- Visual timeline showing hotel stays with dates and durations
+- Automatic calculation of total trip days/nights
+- Smart conflict detection (overlaps, gaps, scheduling issues)
+- Responsive design with color-coded hotels
+- Real-time date editing with automatic recalculation
+- Trip summary dashboard with key metrics
+- Navigation system with tabs between features
+
 ## Current Issues
-- Development server runs but connection refused on browser
-- Need to test the Quote Builder feature
+- ~~Development server runs but connection refused on browser~~ ✅ FIXED: Server now running on port 3000
+- ~~Need to test the Quote Builder feature~~ ⏳ PENDING: Playwright connection issues
+- Need to test the Itinerary Timeline View feature
 
 ## Next Features to Implement
 
-### 2. Itinerary Timeline View
-- Drag-and-drop interface for multi-destination trips
-- Visual timeline showing hotel stays
-- Automatic calculation of total days/nights
-- Flag scheduling conflicts
+### 2. Itinerary Timeline View ✅ COMPLETED
+- ✅ Drag-and-drop interface for multi-destination trips
+- ✅ Visual timeline showing hotel stays
+- ✅ Automatic calculation of total days/nights
+- ✅ Flag scheduling conflicts
+- ✅ Navigation system with tabs between Contract Intelligence and Itinerary Timeline
+- ✅ Responsive design with conflict detection and visual indicators
 
 ### 3. Commission & Markup Calculator
 - Show net rates vs. selling rates
