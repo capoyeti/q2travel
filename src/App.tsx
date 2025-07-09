@@ -3,20 +3,12 @@ import ContractIntelligenceHub from './components/ContractIntelligenceHub';
 import ItineraryTimeline from './components/ItineraryTimeline';
 import CommissionCalculator from './components/CommissionCalculator';
 import ClientBookingHistory from './components/ClientBookingHistory';
-import { Calendar, Search, DollarSign, Users, Clock } from 'lucide-react';
+import { Calendar, Search, DollarSign, Users } from 'lucide-react';
 import q2Logo from '../assets/q2logo.png';
 
 function App() {
   const [activeTab, setActiveTab] = useState<'contracts' | 'itinerary' | 'commission' | 'clients'>('contracts');
-  const [currentTime, setCurrentTime] = useState(new Date());
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
+  
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -83,18 +75,7 @@ function App() {
             </div>
             
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2 text-sm text-gray-600">
-                <Clock className="w-4 h-4" />
-                <span>{currentTime.toLocaleString('en-ZA', { 
-                  timeZone: 'Africa/Johannesburg',
-                  day: '2-digit',
-                  month: '2-digit', 
-                  year: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit'
-                })}</span>
-                <span className="text-gray-400">SAST</span>
-              </div>
+              {/* Clock removed - was causing re-renders */}
             </div>
           </div>
         </div>

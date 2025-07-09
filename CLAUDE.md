@@ -279,21 +279,24 @@ Before implementing new features:
 
 ---
 
-**Last Updated**: 2025-07-09 23:15 UTC
+**Last Updated**: 2025-07-09 23:45 UTC
 **Claude Version**: Sonnet 4
-**Project Phase**: Feature Development - Availability Integration Complete
+**Project Phase**: Modal Scrolling Issue - RESOLVED ✅
 
-## ⚠️ Known Issues to Address
+## ✅ Recently Fixed Issues
 
-### Contract Modal Scrolling Issue
-- **Problem**: Contract Analysis modal still has scrolling issues - jumping to top when trying to scroll
-- **Suspected Cause**: The HTML/PDF dummy contract links may be interfering with modal scrolling behavior
-- **Attempted Fixes**: 
-  - Changed modal structure to flexbox with fixed header/footer
-  - Removed sticky positioning
-  - Made content area scrollable with overflow-y-auto
-- **Status**: UNRESOLVED - needs further investigation
-- **Next Steps**: 
-  - Consider isolating the contract PDF links from the modal scrolling context
-  - Test if removing the contract links temporarily fixes scrolling
-  - May need to restructure modal DOM hierarchy or event handling
+### Contract Modal Scrolling Issue - RESOLVED
+- **Problem**: Contract Analysis modal was jumping to top when trying to scroll
+- **Root Cause**: App.tsx had a clock component with `setInterval` updating every second, causing entire app to re-render constantly
+- **Secondary Cause**: `mockResults` object was being re-evaluated on every render, calling `getCurrentSeasonRate()` with `new Date().getMonth()`
+- **Debugging Process**: 
+  - Added comprehensive logging to track parent component re-renders
+  - Discovered re-renders happening every second (timestamps showed pattern)
+  - Traced to clock component causing app-wide re-renders
+  - Modal was being destroyed/recreated every second, resetting scroll position
+- **Solution Applied**: 
+  - **Primary Fix**: Removed clock component from App.tsx entirely
+  - **Secondary Fix**: Wrapped `mockResults` in `useMemo()` to prevent re-evaluation on every render
+- **Status**: ✅ RESOLVED - Modal now scrolls smoothly without jumping
+- **Lesson Learned**: Always check parent component re-render causes when debugging React component issues
+- **Performance Impact**: Massive improvement - app no longer re-renders constantly

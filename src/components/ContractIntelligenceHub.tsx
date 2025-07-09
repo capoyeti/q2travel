@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Search, Star, TrendingUp, AlertCircle, Download, Filter, MapPin, Activity, Info, FileText, ShoppingCart, X, Plus, Minus, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
 
 interface QuoteItem {
@@ -318,7 +318,9 @@ const ContractIntelligenceHub = () => {
     }
   };
 
-  const mockResults = {
+  // Fixed: Use useMemo to prevent re-evaluation on every render
+  const mockResults = useMemo(() => {
+    return {
     preferred: [
       {
         name: "Sabi Sands Safari Lodge",
@@ -385,7 +387,8 @@ const ContractIntelligenceHub = () => {
         rateType: "double"
       }
     ]
-  };
+    };
+  }, []); // Empty dependency array - only calculate once
 
   const tooltips = {
     confidence: {
