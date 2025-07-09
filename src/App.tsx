@@ -78,6 +78,7 @@ function App() {
                   <Users className="w-4 h-4" />
                   <span>Client History</span>
                 </button>
+                
               </nav>
             </div>
             

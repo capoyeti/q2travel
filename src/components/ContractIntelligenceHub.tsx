@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Star, TrendingUp, AlertCircle, Download, Filter, MapPin, Activity, Info, FileText, ShoppingCart, X, Plus, Minus } from 'lucide-react';
+import { Search, Star, TrendingUp, AlertCircle, Download, Filter, MapPin, Activity, Info, FileText, ShoppingCart, X, Plus, Minus, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
 
 interface QuoteItem {
   name: string;
@@ -379,7 +379,7 @@ const ContractIntelligenceHub = () => {
         specialTerms: "Child-friendly, malaria-free zone",
         confidence: 92,
         location: "Madikwe Game Reserve",
-        availability: "Available",
+        availability: "Limited",
         note: "Higher rate but malaria-free advantage",
         appliedRate: "Standard seasonal rate",
         rateType: "double"
@@ -409,6 +409,45 @@ const ContractIntelligenceHub = () => {
   const handleViewContract = (hotel: Hotel) => {
     setSelectedHotel(hotel.name);
     setShowContractModal(true);
+  };
+
+  const handleCheckAvailability = (hotel: Hotel) => {
+    // Simulate API call to check availability
+    const availabilityStates = ['Available', 'Limited', 'Unavailable'];
+    const randomState = availabilityStates[Math.floor(Math.random() * availabilityStates.length)];
+    
+    // Update the hotel's availability in mockResults
+    const updateHotelAvailability = (hotelList: Hotel[]) => {
+      return hotelList.map(h => 
+        h.name === hotel.name ? { ...h, availability: randomState } : h
+      );
+    };
+    
+    mockResults.preferred = updateHotelAvailability(mockResults.preferred);
+    mockResults.alternatives = updateHotelAvailability(mockResults.alternatives);
+    
+    // Force re-render by updating a state
+    setShowResults(false);
+    setTimeout(() => setShowResults(true), 100);
+  };
+
+  const handleRefreshAllAvailability = () => {
+    // Simulate API call to refresh all availability
+    const availabilityStates = ['Available', 'Limited', 'Unavailable'];
+    
+    const updateAllHotelsAvailability = (hotelList: Hotel[]) => {
+      return hotelList.map(hotel => ({
+        ...hotel,
+        availability: availabilityStates[Math.floor(Math.random() * availabilityStates.length)]
+      }));
+    };
+    
+    mockResults.preferred = updateAllHotelsAvailability(mockResults.preferred);
+    mockResults.alternatives = updateAllHotelsAvailability(mockResults.alternatives);
+    
+    // Force re-render by updating a state
+    setShowResults(false);
+    setTimeout(() => setShowResults(true), 100);
   };
 
   // Quote management functions
@@ -504,15 +543,15 @@ const ContractIntelligenceHub = () => {
 
     return (
       <div 
-        className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center z-50 p-4 overflow-y-auto"
+        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
         onClick={onClose}
       >
         <div 
-          className="bg-white rounded-lg shadow-xl max-w-4xl w-full my-8 mx-auto"
+          className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center justify-between p-6 border-b sticky top-0 bg-white z-10">
-            <h2 className="text-2xl font-bold text-gray-900">{hotel.name} - Contract Analysis</h2>
+          <div className="flex items-center justify-between p-6 border-b bg-white flex-shrink-0">
+            <h2 className="text-2xl font-bold text-gray-900">{hotel} - Contract Analysis</h2>
             <button
               onClick={onClose}
               className="text-gray-400 hover:text-gray-600 text-2xl font-bold w-8 h-8 flex items-center justify-center"
@@ -521,7 +560,7 @@ const ContractIntelligenceHub = () => {
             </button>
           </div>
           
-          <div className="p-6">
+          <div className="p-6 overflow-y-auto flex-1">
             {/* Rate Calculation Summary */}
             <div className="bg-blue-50 border-l-4 border-l-blue-500 p-4 mb-6">
               <div className="flex items-start justify-between">
@@ -546,8 +585,9 @@ const ContractIntelligenceHub = () => {
                 </div>
                 <div className="ml-4">
                   <a 
-                    href="#" 
-                    onClick={(e) => e.preventDefault()}
+                    href={`/contracts/${hotel.replace(/\s+/g, '_')}_2025.html`}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 px-3 py-2 bg-white border border-blue-300 rounded-md hover:bg-blue-50 transition-colors text-sm"
                   >
                     <Download className="w-4 h-4" />
@@ -726,7 +766,7 @@ const ContractIntelligenceHub = () => {
                     <span className="font-medium">File Location:</span>
                   </div>
                   <code className="text-gray-500">
-                    /OneDrive/Contracts/2025/Safari_Lodges/{hotel.name.replace(/\s+/g, '_')}_2025.pdf
+                    /OneDrive/Contracts/2025/Safari_Lodges/{hotel.replace(/\s+/g, '_')}_2025.pdf
                   </code>
                 </div>
               </div>
@@ -734,7 +774,7 @@ const ContractIntelligenceHub = () => {
             </div>
           </div>
           
-          <div className="flex justify-end gap-3 p-6 border-t bg-gray-50 sticky bottom-0">
+          <div className="flex justify-end gap-3 p-6 border-t bg-gray-50 flex-shrink-0">
             <button
               onClick={onClose}
               className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100 transition-colors"
@@ -766,6 +806,18 @@ const ContractIntelligenceHub = () => {
             {hotel.savings && (
               <span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">
                 {hotel.savings}% OFF
+              </span>
+            )}
+            {hotel.availability && (
+              <span className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full font-medium ${
+                hotel.availability === 'Available' ? 'bg-green-100 text-green-800' :
+                hotel.availability === 'Limited' ? 'bg-yellow-100 text-yellow-800' :
+                'bg-red-100 text-red-800'
+              }`}>
+                {hotel.availability === 'Available' ? <CheckCircle className="w-3 h-3" /> :
+                 hotel.availability === 'Limited' ? <AlertCircle className="w-3 h-3" /> :
+                 <XCircle className="w-3 h-3" />}
+                {hotel.availability}
               </span>
             )}
           </div>
@@ -841,6 +893,13 @@ const ContractIntelligenceHub = () => {
             className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
           >
             View Contract
+          </button>
+          <button 
+            onClick={() => handleCheckAvailability(hotel)}
+            className="px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+            title="Check Availability"
+          >
+            <RefreshCw className="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -1194,10 +1253,20 @@ const ContractIntelligenceHub = () => {
                     <Star className="w-5 h-5 text-yellow-500 fill-current" />
                     Your Preferred Hotels
                   </h2>
-                  <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
-                    <Download className="w-4 h-4" />
-                    Export to Quote System
-                  </button>
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={handleRefreshAllAvailability}
+                      className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                      title="Refresh availability for all hotels"
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                      Refresh Availability
+                    </button>
+                    <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
+                      <Download className="w-4 h-4" />
+                      Export to Quote System
+                    </button>
+                  </div>
                 </div>
 
                 <div className="grid gap-4">
