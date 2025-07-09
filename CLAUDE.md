@@ -279,6 +279,21 @@ Before implementing new features:
 
 ---
 
-**Last Updated**: 2025-07-09 22:45 UTC
+**Last Updated**: 2025-07-09 23:15 UTC
 **Claude Version**: Sonnet 4
 **Project Phase**: Feature Development - Availability Integration Complete
+
+## ⚠️ Known Issues to Address
+
+### Contract Modal Scrolling Issue
+- **Problem**: Contract Analysis modal still has scrolling issues - jumping to top when trying to scroll
+- **Suspected Cause**: The HTML/PDF dummy contract links may be interfering with modal scrolling behavior
+- **Attempted Fixes**: 
+  - Changed modal structure to flexbox with fixed header/footer
+  - Removed sticky positioning
+  - Made content area scrollable with overflow-y-auto
+- **Status**: UNRESOLVED - needs further investigation
+- **Next Steps**: 
+  - Consider isolating the contract PDF links from the modal scrolling context
+  - Test if removing the contract links temporarily fixes scrolling
+  - May need to restructure modal DOM hierarchy or event handling
