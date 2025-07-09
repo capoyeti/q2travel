@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Search, Star, TrendingUp, AlertCircle, Download, Filter, MapPin, Activity, Info, FileText, ShoppingCart, X, Plus, Minus, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
 
 interface QuoteItem {
@@ -35,8 +35,8 @@ const ContractIntelligenceHub = () => {
   const [showResults, setShowResults] = useState(false);
   const [preferredOnly, setPreferredOnly] = useState(false);
   const [showContractModal, setShowContractModal] = useState(false);
-  const [selectedHotel, setSelectedHotel] = useState<string | null>(null);
-  const [showTooltip, setShowTooltip] = useState<string | null>(null);
+  const [selectedHotel, setSelectedHotel] = useState<Hotel | null>(null);
+  // const [showTooltip, setShowTooltip] = useState<string | null>(null); // TEMPORARILY DISABLED
   const [quoteItems, setQuoteItems] = useState<QuoteItem[]>([]);
   const [showQuotePanel, setShowQuotePanel] = useState(false);
   
@@ -407,7 +407,7 @@ const ContractIntelligenceHub = () => {
   };
 
   const handleViewContract = (hotel: Hotel) => {
-    setSelectedHotel(hotel.name);
+    setSelectedHotel(hotel);
     setShowContractModal(true);
   };
 
@@ -503,29 +503,19 @@ const ContractIntelligenceHub = () => {
 
   const Tooltip = ({ children, content, id }: { children: React.ReactNode; content: string; id: string }) => (
     <div className="relative inline-block">
-      <div
-        onMouseEnter={() => setShowTooltip(id)}
-        onMouseLeave={() => setShowTooltip(null)}
-        className="cursor-help"
-      >
+      <div className="cursor-help">
         {children}
       </div>
-      {showTooltip === id && (
-        <div className="absolute z-50 w-64 p-3 bg-gray-900 text-white text-sm rounded-lg shadow-lg -top-2 left-full ml-2">
-          <div className="font-semibold mb-1">{content.title}</div>
-          <div>{content.description}</div>
-          <div className="absolute top-3 left-0 transform -translate-x-1 w-0 h-0 border-t-4 border-b-4 border-r-4 border-t-transparent border-b-transparent border-r-gray-900"></div>
-        </div>
-      )}
     </div>
   );
 
-  const ContractModal = ({ hotel, onClose }: { hotel: string; onClose: () => void }) => {
-    const contract = mockContract[hotel as keyof typeof mockContract];
+  const ContractModal = ({ hotel, onClose }: { hotel: Hotel; onClose: () => void }) => {
+    const contract = mockContract[hotel.name as keyof typeof mockContract];
+    
     if (!contract) return null;
 
     const currentMonth = new Date().getMonth();
-    const seasonMap = {
+    const seasonMap: Record<number, string> = {
       0: "Jan-Mar", 1: "Jan-Mar", 2: "Jan-Mar",
       3: "Apr-Jun", 4: "Apr-Jun", 5: "Apr-Jun",
       6: "Jul-Sep", 7: "Jul-Sep", 8: "Jul-Sep",
@@ -533,8 +523,7 @@ const ContractIntelligenceHub = () => {
     };
     const currentSeason = seasonMap[currentMonth];
 
-    // Prevent background scrolling when modal is open
-    useEffect(() => {
+    React.useEffect(() => {
       document.body.style.overflow = 'hidden';
       return () => {
         document.body.style.overflow = 'unset';
@@ -547,11 +536,11 @@ const ContractIntelligenceHub = () => {
         onClick={onClose}
       >
         <div 
-          className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col"
+          className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center justify-between p-6 border-b bg-white flex-shrink-0">
-            <h2 className="text-2xl font-bold text-gray-900">{hotel} - Contract Analysis</h2>
+          <div className="flex items-center justify-between p-6 border-b bg-white">
+            <h2 className="text-2xl font-bold text-gray-900">{hotel.name} - Contract Analysis</h2>
             <button
               onClick={onClose}
               className="text-gray-400 hover:text-gray-600 text-2xl font-bold w-8 h-8 flex items-center justify-center"
@@ -560,7 +549,10 @@ const ContractIntelligenceHub = () => {
             </button>
           </div>
           
-          <div className="p-6 overflow-y-auto flex-1">
+          <div 
+            className="p-6 overflow-y-auto"
+            style={{ height: 'calc(90vh - 140px)' }}
+          >
             {/* Rate Calculation Summary */}
             <div className="bg-blue-50 border-l-4 border-l-blue-500 p-4 mb-6">
               <div className="flex items-start justify-between">
@@ -584,15 +576,18 @@ const ContractIntelligenceHub = () => {
                   </div>
                 </div>
                 <div className="ml-4">
-                  <a 
-                    href={`/contracts/${hotel.replace(/\s+/g, '_')}_2025.html`}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      // Open in new window/tab
+                      window.open(`/contracts/${hotel.name.replace(/\s+/g, '_')}_2025.html`, '_blank');
+                    }}
                     className="inline-flex items-center gap-2 px-3 py-2 bg-white border border-blue-300 rounded-md hover:bg-blue-50 transition-colors text-sm"
                   >
                     <Download className="w-4 h-4" />
                     View Original Contract PDF
-                  </a>
+                  </button>
                   <div className="text-xs text-blue-600 mt-1">Contract #{contract.contractNumber}</div>
                 </div>
               </div>
@@ -607,7 +602,7 @@ const ContractIntelligenceHub = () => {
                   {Object.entries(contract.rateCard).map(([season, rates]) => {
                     const isCurrentSeason = season === currentSeason;
                     const ratesTyped = rates as { single: number; double: number; child: number };
-                    const isQuotedRate = isCurrentSeason && ratesTyped.double === getCurrentSeasonRate(hotel);
+                    const isQuotedRate = isCurrentSeason && ratesTyped.double === getCurrentSeasonRate(hotel.name);
                     
                     return (
                       <div 
@@ -724,22 +719,28 @@ const ContractIntelligenceHub = () => {
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-gray-900">Contract Information</h3>
                   <div className="flex gap-2">
-                    <a 
-                      href="#" 
-                      onClick={(e) => e.preventDefault()}
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('Download PDF clicked');
+                      }}
                       className="inline-flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
                     >
                       <FileText className="w-4 h-4" />
                       Download Original PDF
-                    </a>
-                    <a 
-                      href="#" 
-                      onClick={(e) => e.preventDefault()}
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('Contract History clicked');
+                      }}
                       className="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors text-sm"
                     >
                       <Info className="w-4 h-4" />
                       Contract History
-                    </a>
+                    </button>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
@@ -766,7 +767,7 @@ const ContractIntelligenceHub = () => {
                     <span className="font-medium">File Location:</span>
                   </div>
                   <code className="text-gray-500">
-                    /OneDrive/Contracts/2025/Safari_Lodges/{hotel.replace(/\s+/g, '_')}_2025.pdf
+                    /OneDrive/Contracts/2025/Safari_Lodges/{hotel.name.replace(/\s+/g, '_')}_2025.pdf
                   </code>
                 </div>
               </div>
