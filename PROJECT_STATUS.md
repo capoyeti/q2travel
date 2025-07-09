@@ -31,10 +31,38 @@
 - Trip summary dashboard with key metrics
 - Navigation system with tabs between features
 
+### 4. Commission & Markup Calculator (Third Feature - COMPLETED)
+- Interactive pricing table with editable net rates and markup percentages
+- Real-time calculation of selling rates, commission, and profit
+- Configurable commission rates and default markup settings
+- Visual profit margin breakdown with color-coded charts
+- Support for multiple hotels with varying stay details (nights, guests, rooms)
+- Summary dashboard showing total revenue, commission, and profit margins
+- Settings panel for customizing calculation parameters
+- Add/remove hotels functionality for flexible scenario planning
+- **Multi-currency support** (ZAR, USD, GBP, EUR) with easy currency switching
+- **South African localization** with proper ZAR formatting and market rates
+- **International tourist support** with major currency options
+- **LATEST UPDATE**: Real-time currency conversion with live exchange rates
+  - Live exchange rate fetching from exchangerate-api.com
+  - Offline fallback with localStorage caching of last known rates
+  - Visual status indicators showing online/offline state
+  - Time since last update display
+  - Comprehensive settings panel for exchange rate configuration
+  - Automatic rate updates with configurable frequency (default 60 minutes)
+  - Error handling with graceful fallback to cached rates
+  - Proper currency formatting for each supported currency
+
 ## Current Issues
-- ~~Development server runs but connection refused on browser~~ ✅ FIXED: Server now running on port 3000
-- ~~Need to test the Quote Builder feature~~ ⏳ PENDING: Playwright connection issues
-- Need to test the Itinerary Timeline View feature
+- ~~Development server runs but connection refused on browser~~ ✅ FIXED: Server now running on port 3001
+- ~~Need to test the Quote Builder feature~~ ✅ FIXED: Tested and working with Playwright
+- ~~Need to test the Itinerary Timeline View feature~~ ✅ FIXED: Tested and working with Playwright
+- ~~Need to test the Currency Conversion feature manually~~ ✅ FIXED: Tested and working with Playwright
+- ~~Need to test the Client Booking History feature~~ ✅ FIXED: Tested and working with Playwright
+- ~~Date logic issues with booking statuses~~ ✅ FIXED: All confirmed/pending bookings now have future dates
+- ~~Incorrect booking counts for clients~~ ✅ FIXED: Dynamic calculation from actual bookings
+- ~~Logo proportions and branding issues~~ ✅ FIXED: Q2 logo properly integrated
+- Minor TypeScript errors in ContractIntelligenceHub.tsx (non-blocking)
 
 ## Next Features to Implement
 
@@ -46,17 +74,26 @@
 - ✅ Navigation system with tabs between Contract Intelligence and Itinerary Timeline
 - ✅ Responsive design with conflict detection and visual indicators
 
-### 3. Commission & Markup Calculator
-- Show net rates vs. selling rates
-- Configurable markup percentages
-- Commission tracking per booking
-- Profit margin visualization
+### 3. Commission & Markup Calculator ✅ COMPLETED
+- ✅ Show net rates vs. selling rates
+- ✅ Configurable markup percentages
+- ✅ Commission tracking per booking
+- ✅ Profit margin visualization
+- ✅ Interactive pricing table with real-time calculations
+- ✅ Settings panel for customizing rates and parameters
+- ✅ Visual profit breakdown charts
 
-### 4. Client Booking History
-- Quick search for repeat clients
-- Show previous bookings and preferences
-- "Suggest similar trips" based on history
-- Client communication log
+### 4. Client Booking History ✅ COMPLETED
+- ✅ Quick search for repeat clients
+- ✅ Show previous bookings and preferences
+- ✅ "Suggest similar trips" based on history
+- ✅ Client communication shortcuts (WhatsApp, Newsletter, etc.)
+- ✅ Dynamic client statistics (real-time booking counts and totals)
+- ✅ Advanced pagination (10 bookings per page)
+- ✅ Enhanced client details with previous trips view
+- ✅ Proper Q2 logo integration with correct proportions
+- ✅ Live time display in header (SAST)
+- ✅ Logical date handling for all booking statuses
 
 ### 5. Real-time Availability Checker
 - Mock availability status indicators
@@ -68,6 +105,18 @@
 - Ensure the app works well on tablets/phones
 - Quick booking actions for on-the-go
 - Offline mode for viewing contracts
+
+## Additional Enhancements Completed
+- **Q2 Logo Integration**: Proper logo proportions matching website branding
+- **Live Time Display**: Real-time SAST clock in header
+- **Enhanced Navigation**: Clean header with just logo, navigation, and time
+- **Advanced Pagination**: 10 bookings per page with proper navigation controls
+- **Dynamic Statistics**: Real-time calculated booking counts and spending totals
+- **Communication Tools**: WhatsApp, Newsletter, Latest News, Special Offers shortcuts
+- **Trip Management**: Previous trips view and similar trip suggestions
+- **Date Logic**: All booking statuses now logically consistent with dates
+- **Sorting**: Recent bookings sorted by most recent booking date
+- **Status Management**: Added cancelled status with proper styling
 
 ## Commands to Run
 ```bash

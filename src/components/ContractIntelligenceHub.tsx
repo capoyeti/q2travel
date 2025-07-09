@@ -76,10 +76,10 @@ const ContractIntelligenceHub = () => {
       validFrom: "2025-01-01",
       validTo: "2025-12-31",
       rateCard: {
-        "Jan-Mar": { single: 480, double: 520, child: 260 },
-        "Apr-Jun": { single: 420, double: 460, child: 230 },
-        "Jul-Sep": { single: 580, double: 620, child: 310 },
-        "Oct-Dec": { single: 520, double: 560, child: 280 }
+        "Jan-Mar": { single: 8500, double: 9200, child: 4600 },
+        "Apr-Jun": { single: 7400, double: 8100, child: 4050 },
+        "Jul-Sep": { single: 10200, double: 10900, child: 5450 },
+        "Oct-Dec": { single: 9200, double: 9900, child: 4950 }
       },
       terms: [
         { 
@@ -167,10 +167,10 @@ const ContractIntelligenceHub = () => {
       validFrom: "2025-01-01",
       validTo: "2025-12-31",
       rateCard: {
-        "Jan-Mar": { single: 380, double: 420, child: 210 },
-        "Apr-Jun": { single: 340, double: 380, child: 190 },
-        "Jul-Sep": { single: 460, double: 500, child: 250 },
-        "Oct-Dec": { single: 340, double: 380, child: 190 }
+        "Jan-Mar": { single: 6700, double: 7400, child: 3700 },
+        "Apr-Jun": { single: 6000, double: 6700, child: 3350 },
+        "Jul-Sep": { single: 8100, double: 8800, child: 4400 },
+        "Oct-Dec": { single: 6000, double: 6700, child: 3350 }
       },
       terms: [
         { 
@@ -322,8 +322,8 @@ const ContractIntelligenceHub = () => {
     preferred: [
       {
         name: "Sabi Sands Safari Lodge",
-        rate: `$${getCurrentSeasonRate("Sabi Sands Safari Lodge")}/night`,
-        originalRate: `$${getCurrentSeasonRate("Sabi Sands Safari Lodge")}/night`,
+        rate: `R${getCurrentSeasonRate("Sabi Sands Safari Lodge").toLocaleString()}/night`,
+        originalRate: `R${getCurrentSeasonRate("Sabi Sands Safari Lodge").toLocaleString()}/night`,
         bookingHistory: 23,
         lastUsed: "2 months ago",
         rating: 4.8,
@@ -337,8 +337,8 @@ const ContractIntelligenceHub = () => {
       },
       {
         name: "Thornybush Game Lodge",
-        rate: `$${Math.floor(getCurrentSeasonRate("Thornybush Game Lodge") * 0.8)}/night`,
-        originalRate: `$${getCurrentSeasonRate("Thornybush Game Lodge")}/night`,
+        rate: `R${Math.floor(getCurrentSeasonRate("Thornybush Game Lodge") * 0.8).toLocaleString()}/night`,
+        originalRate: `R${getCurrentSeasonRate("Thornybush Game Lodge").toLocaleString()}/night`,
         bookingHistory: 18,
         lastUsed: "1 month ago",
         rating: 4.6,
@@ -355,8 +355,8 @@ const ContractIntelligenceHub = () => {
     alternatives: [
       {
         name: "Kruger Bush Camp Premium",
-        rate: "$290/night",
-        originalRate: "$290/night",
+        rate: "R5,100/night",
+        originalRate: "R5,100/night",
         bookingHistory: 0,
         rating: 4.4,
         experience: ["Big 5", "Bush Safari", "Family"],
@@ -595,13 +595,13 @@ const ContractIntelligenceHub = () => {
                         </div>
                         <div className="grid grid-cols-3 gap-2 mt-2 text-sm">
                           <div className={isCurrentSeason ? 'font-medium text-green-800' : ''}>
-                            Single: ${ratesTyped.single}
+                            Single: R{ratesTyped.single.toLocaleString()}
                           </div>
                           <div className={isCurrentSeason && isQuotedRate ? 'font-bold text-blue-800' : isCurrentSeason ? 'font-medium text-green-800' : ''}>
-                            Double: ${ratesTyped.double} {isQuotedRate && '← Base rate'}
+                            Double: R{ratesTyped.double.toLocaleString()} {isQuotedRate && '← Base rate'}
                           </div>
                           <div className={isCurrentSeason ? 'font-medium text-green-800' : ''}>
-                            Child: ${ratesTyped.child}
+                            Child: R{ratesTyped.child.toLocaleString()}
                           </div>
                         </div>
                       </div>
